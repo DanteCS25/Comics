@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Peony Pursuit — A Marvel-Style Romance</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1108;
+    --paper: #f5f0e8;
+    --paper2: #ede8d8;
+    --marvel-red: #E8151B;
+    --marvel-yellow: #FFE000;
+    --marvel-blue: #1a4a9e;
+    --skin: #f0c080;
+    --skin-shadow: #d4955a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #2a1a0a;
+    font-family: 'Comic Neue', cursive;
+    overflow-x: hidden;
+  }
+
+  /* NAVIGATION */
+  #nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--ink);
+    border-bottom: 4px solid var(--marvel-red);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+  }
+  .nav-logo {
+    font-family: 'Bangers', cursive;
+    font-size: 22px;
+    color: var(--marvel-yellow);
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 0 var(--marvel-red);
+  }
+  .nav-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .nav-btn {
+    background: var(--marvel-red);
+    color: var(--marvel-yellow);
+    border: 2px solid var(--marvel-yellow);
+    font-family: 'Bangers', cursive;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: background 0.1s, transform 0.1s;
+  }
+  .nav-btn:hover { background: #c00; transform: scale(1.04); }
+  .nav-btn:disabled { background: #444; color: #777; border-color: #555; cursor: default; transform: none; }
+  .page-counter {
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    color: var(--paper);
+    letter-spacing: 1px;
+    min-width: 90px;
+    text-align: center;
+  }
+
+  /* PAGE WRAPPER */
+  #comic-viewport {
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px 40px;
+  }
+
+  /* EACH PAGE */
+  .comic-page {
+    display: none;
+    width: 100%;
+    max-width: 860px;
+  }
+  .comic-page.active { display: block; }
+
+  /* COVER */
+  .cover-page {
+    background: var(--marvel-red);
+    border: 6px solid var(--ink);
+    position: relative;
+    overflow: hidden;
+    min-height: 1100px;
+  }
+
+  /* BACK COVER */
+  .back-cover-page {
+    background: var(--ink);
+    border: 6px solid var(--marvel-yellow);
+    position: relative;
+    min-height: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+  }
+
+  /* STORY PAGES */
+  .story-page {
+    background: var(--paper);
+    border: 5px solid var(--ink);
+    min-height: 1100px;
+    position: relative;
+    overflow: hidden;
+    padding: 16px;
+  }
+
+  /* HALFTONE OVERLAY */
+  .halftone {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(0,0,0,0.12) 1.2px, transparent 1.2px);
+    background-size: 6px 6px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .halftone-color {
+    background-image: radial-gradient(circle, rgba(200,100,0,0.1) 1.2px, transparent 1.2px);
+    background-size: 5px 5px;
+  }
+
+  /* PANEL GRID */
+  .panel-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 6px;
+    height: 100%;
+  }
+
+  .panel-layout {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* INDIVIDUAL PANELS */
+  .panel {
+    border: 4px solid var(--ink);
+    background: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+  /* SVGs always scale with panel width, height auto */
+  .panel svg { display: block; width: 100%; height: auto; }
+
+  /* SPEECH BUBBLES */
+  .speech {
+    position: absolute;
+    background: white;
+    border: 2.5px solid var(--ink);
+    border-radius: 50%;
+    padding: 7px 10px;
+    font-family: 'Comic Neue', cursive;
+    font-weight: 700;
+    font-size: 10px;
+    line-height: 1.4;
+    z-index: 20;
+    text-align: center;
+  }
+  .speech.rect {
+    border-radius: 8px;
+  }
+  .speech::after {
+    content: '';
+    position: absolute;
+    border: 9px solid transparent;
+  }
+  .speech.tail-bl::after {
+    bottom: -20px; left: 18px;
+    border-top-color: var(--ink);
+  }
+  .speech.tail-bl::before {
+    content: '';
+    position: absolute;
+    border: 7px solid transparent;
+    border-top-color: white;
+    bottom: -14px; left: 20px;
+    z-index: 1;
+  }
+  .speech.tail-br::after {
+    bottom: -20px; right: 18px;
+    border-top-color: var(--ink);
+  }
+  .speech.tail-br::before {
+    content: '';
+    position: absolute;
+    border: 7px solid transparent;
+    border-top-color: white;
+    bottom: -14px; right: 20px;
+    z-index: 1;
+  }
+  .speech.tail-tl::after {
+    top: -20px; left: 18px;
+    border-bottom-color: var(--ink);
+  }
+  .speech.tail-tl::before {
+    content: '';
+    position: absolute;
+    border: 7px solid transparent;
+    border-bottom-color: white;
+    top: -14px; left: 20px;
+    z-index: 1;
+  }
+  .speech.tail-tr::after {
+    top: -20px; right: 18px;
+    border-bottom-color: var(--ink);
+  }
+  .speech.tail-tr::before {
+    content: '';
+    position: absolute;
+    border: 7px solid transparent;
+    border-bottom-color: white;
+    top: -14px; right: 20px;
+    z-index: 1;
+  }
+
+  /* CAPTIONS */
+  .caption {
+    position: absolute;
+    background: var(--marvel-yellow);
+    border: 2px solid var(--ink);
+    padding: 4px 10px;
+    font-family: 'Bangers', cursive;
+    font-size: 12px;
+    color: var(--ink);
+    z-index: 20;
+    letter-spacing: 0.5px;
+  }
+  .caption.blue {
+    background: var(--marvel-blue);
+    color: white;
+  }
+  .caption.red {
+    background: var(--marvel-red);
+    color: white;
+  }
+
+  /* SFX */
+  .sfx {
+    font-family: 'Bangers', cursive;
+    position: absolute;
+    z-index: 15;
+    pointer-events: none;
+  }
+
+  /* PAGE HEADER BAR */
+  .page-header {
+    background: var(--ink);
+    color: var(--marvel-yellow);
+    font-family: 'Bangers', cursive;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    border: 2px solid var(--ink);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* COVER ELEMENTS */
+  .cover-banner {
+    background: var(--ink);
+    color: var(--marvel-yellow);
+    font-family: 'Bangers', cursive;
+    font-size: 13px;
+    letter-spacing: 3px;
+    padding: 6px 20px;
+    text-align: center;
+    border-bottom: 3px solid var(--marvel-yellow);
+  }
+
+  .cover-title-block {
+    position: relative;
+    z-index: 5;
+    padding: 16px 20px 0;
+  }
+
+  .cover-series {
+    font-family: 'Bangers', cursive;
+    font-size: 16px;
+    color: var(--marvel-yellow);
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+
+  .cover-title {
+    font-family: 'Bangers', cursive;
+    font-size: 72px;
+    color: white;
+    line-height: 0.9;
+    text-shadow: 4px 4px 0 var(--ink), -2px -2px 0 var(--ink), 6px 6px 0 rgba(0,0,0,0.4);
+    letter-spacing: 2px;
+  }
+
+  .cover-subtitle {
+    font-family: 'Bangers', cursive;
+    font-size: 22px;
+    color: var(--marvel-yellow);
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0 var(--ink);
+    margin-top: 4px;
+  }
+
+  .cover-issue-box {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: var(--marvel-yellow);
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .cover-issue-box span:first-child {
+    font-family: 'Bangers', cursive;
+    font-size: 10px;
+    color: var(--ink);
+    letter-spacing: 1px;
+  }
+  .cover-issue-box span:last-child {
+    font-family: 'Bangers', cursive;
+    font-size: 28px;
+    color: var(--marvel-red);
+    line-height: 1;
+  }
+
+  .cover-price-box {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    background: white;
+    border: 3px solid var(--ink);
+    padding: 4px 8px;
+    z-index: 10;
+  }
+  .cover-price-box span {
+    font-family: 'Bangers', cursive;
+    font-size: 13px;
+    color: var(--ink);
+    display: block;
+    letter-spacing: 1px;
+  }
+
+  .cover-barcode {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10;
+  }
+
+  /* BACK COVER */
+  .back-cover-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .bc-panel {
+    border: 3px solid var(--marvel-yellow);
+    background: rgba(255,255,255,0.05);
+    padding: 16px;
+    position: relative;
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────────── */
+
+  /* Tablet */
+  @media (max-width: 768px) {
+    #comic-viewport { padding: 12px 8px 32px; }
+    .cover-title { font-size: 54px; }
+    .story-page { min-height: unset; padding: 10px; }
+    .cover-page { min-height: unset; }
+    .back-cover-page { min-height: unset; padding: 52px 20px 24px; }
+    .back-cover-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+    .nav-logo { font-size: 16px; letter-spacing: 1px; }
+    .nav-btn { font-size: 11px; padding: 4px 10px; }
+    .page-counter { font-size: 11px; min-width: 70px; }
+  }
+
+  /* Mobile */
+  @media (max-width: 520px) {
+    #nav { height: 46px; padding: 0 10px; }
+    .nav-logo { font-size: 13px; }
+    .nav-btn { font-size: 10px; padding: 3px 8px; }
+    .page-counter { font-size: 10px; min-width: 56px; }
+
+    #comic-viewport { padding: 8px 4px 24px; }
+
+    /* ── Cover ── */
+    .cover-page { border-width: 3px; }
+    .cover-banner { font-size: 9px; letter-spacing: 1px; padding: 4px 8px; }
+    .cover-title { font-size: 38px; line-height: 0.92; }
+    .cover-subtitle { font-size: 14px; }
+    .cover-series { font-size: 11px; }
+    .cover-issue-box { width: 56px; height: 56px; top: 8px; right: 8px; }
+    .cover-issue-box span:last-child { font-size: 20px; }
+    .cover-price-box span { font-size: 10px; }
+    .cover-title-block { padding: 10px 12px 0; }
+
+    /* ── Story pages ── */
+    .story-page { border-width: 3px; padding: 6px; min-height: unset; }
+    .panel { border-width: 3px; }
+    .page-header { font-size: 8px; letter-spacing: 0.5px; padding: 3px 6px; margin-bottom: 5px; }
+
+    /* Stack ALL panel grids to single column on mobile */
+    .story-page > div[style*="grid"],
+    .panel-layout {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 5px !important;
+    }
+
+    /* Reset any panel that had grid-column spans */
+    .panel-wide, .panel-tall,
+    .story-page .panel[style*="grid-column"] {
+      grid-column: unset !important;
+      grid-row: unset !important;
+    }
+
+    /* Fix explicit heights on panels — let them size to SVG */
+    .story-page .panel[style*="height:"] {
+      height: auto !important;
+    }
+
+    /* SVGs scale naturally with width:100%; keep aspect ratio */
+    .story-page .panel svg,
+    .panel svg {
+      height: auto !important;
+      width: 100% !important;
+    }
+
+    /* ── Speech bubbles on mobile: flow below panel art ── */
+    .speech {
+      position: relative !important;
+      display: block !important;
+      left: auto !important;
+      right: auto !important;
+      top: auto !important;
+      bottom: auto !important;
+      margin: 0 !important;
+      font-size: 10px !important;
+      max-width: 100% !important;
+      border-radius: 8px !important;
+      text-align: left !important;
+      width: calc(100% - 6px) !important;
+      border-left: 4px solid var(--marvel-red) !important;
+      padding: 6px 10px 6px 10px !important;
+    }
+    /* Show speech bubbles inside a dialogue strip appended after SVG */
+    .panel { display: flex; flex-direction: column; }
+    .panel > svg { order: 0; }
+    .panel > .caption { order: 1; position: relative !important; top: auto !important; left: auto !important; right: auto !important; bottom: auto !important; display: block; font-size: 9px !important; }
+    .panel > .speech { order: 2; }
+
+    /* Hide tail pseudo-elements on mobile */
+    .speech::after, .speech::before { display: none !important; }
+
+    /* ── Back cover ── */
+    .back-cover-page { padding: 52px 12px 20px; }
+    .back-cover-grid { grid-template-columns: 1fr; gap: 10px; margin-top: 16px; }
+    .bc-panel { padding: 10px; }
+    .bc-panel div:first-child { font-size: 12px !important; margin-bottom: 5px; }
+    .bc-panel div:last-child { font-size: 11px !important; }
+
+    /* Cover bottom bar wraps */
+    .cover-page > div[style*="justify-content:space-between"] {
+      flex-direction: column !important;
+      gap: 2px;
+      text-align: center;
+      font-size: 9px !important;
+      padding: 5px 8px !important;
+    }
+
+    /* Back cover top bar text */
+    .back-cover-page > div[style*="position:absolute"] {
+      font-size: 11px !important;
+      letter-spacing: 1px !important;
+      padding: 6px 10px !important;
+    }
+
+    /* Back cover credits grid */
+    .back-cover-page > div[style*="max-width:720px"] {
+      margin-top: 8px !important;
+    }
+
+    /* Barcode row wraps */
+    .back-cover-page div[style*="justify-content:space-between"] {
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 8px;
+    }
+
+    /* Page 2 three-column grid panels need explicit reset */
+    #page-2 .panel[style*="grid-row"] {
+      grid-row: unset !important;
+      grid-column: unset !important;
+    }
+  }
+
+  /* Very small phones */
+  @media (max-width: 360px) {
+    .cover-title { font-size: 30px; }
+    .nav-logo { display: none; }
+    .nav-btn { font-size: 9px; padding: 3px 7px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav id="nav">
+  <div class="nav-logo">&#9733; MARVEL ROMANCE</div>
+  <div class="nav-controls">
+    <button class="nav-btn" id="prev-btn" onclick="prevPage()" disabled>&#8592; PREV</button>
+    <div class="page-counter" id="page-counter">COVER</div>
+    <button class="nav-btn" id="next-btn" onclick="nextPage()">NEXT &#8594;</button>
+  </div>
+</nav>
+
+<div id="comic-viewport">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PAGE 0: FRONT COVER                         -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="comic-page active" id="page-0">
+    <div class="cover-page">
+      <div class="halftone halftone-color"></div>
+
+      <!-- Top banner -->
+      <div class="cover-banner">MARVEL COMICS GROUP &nbsp;&#9733;&nbsp; APPROVED BY THE COMICS CODE AUTHORITY</div>
+
+      <!-- Issue circle -->
+      <div class="cover-issue-box">
+        <span>ISSUE</span>
+        <span>#1</span>
+      </div>
+      <!-- Price box -->
+      <div class="cover-price-box">
+        <span>25¢</span>
+        <span style="font-size:9px;letter-spacing:0px;">CC 02145</span>
+      </div>
+
+      <!-- Title block -->
+      <div class="cover-title-block">
+        <div class="cover-series">MARVEL PRESENTS</div>
+        <div class="cover-title">THE<br>PEONY<br>PURSUIT</div>
+        <div class="cover-subtitle">"482 MILES FOR LOVE!"</div>
+      </div>
+
+      <!-- COVER ART — large SVG illustration -->
+      <svg width="100%" viewBox="0 0 860 680" style="display:block;position:relative;z-index:2;margin-top:-10px;">
+        <!-- Sky / action background -->
+        <rect width="860" height="680" fill="#1a6ab5"/>
+        <!-- Ben-Day dot sky -->
+        <rect width="860" height="680" fill="url(#dots-sky)"/>
+        <defs>
+          <pattern id="dots-sky" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+            <circle cx="4" cy="4" r="1.4" fill="rgba(255,255,255,0.18)"/>
+          </pattern>
+          <pattern id="dots-yellow" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+            <circle cx="3" cy="3" r="1.1" fill="rgba(0,0,0,0.14)"/>
+          </pattern>
+          <pattern id="dots-red" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+            <circle cx="3" cy="3" r="1.1" fill="rgba(0,0,0,0.12)"/>
+          </pattern>
+        </defs>
+
+        <!-- Action burst lines from center-right -->
+        <g opacity="0.9">
+          <line x1="620" y1="320" x2="860" y2="0" stroke="#FFE000" stroke-width="18" opacity="0.25"/>
+          <line x1="620" y1="320" x2="860" y2="160" stroke="#FFE000" stroke-width="14" opacity="0.2"/>
+          <line x1="620" y1="320" x2="860" y2="320" stroke="#FFE000" stroke-width="20" opacity="0.2"/>
+          <line x1="620" y1="320" x2="860" y2="480" stroke="#FFE000" stroke-width="14" opacity="0.2"/>
+          <line x1="620" y1="320" x2="760" y2="680" stroke="#FFE000" stroke-width="18" opacity="0.2"/>
+          <line x1="620" y1="320" x2="480" y2="680" stroke="#FFE000" stroke-width="12" opacity="0.15"/>
+          <line x1="620" y1="320" x2="860" y2="600" stroke="#FFE000" stroke-width="10" opacity="0.18"/>
+        </g>
+
+        <!-- Ground -->
+        <rect y="530" width="860" height="150" fill="#4a8a20"/>
+        <rect y="545" width="860" height="135" fill="#3a7a12"/>
+        <!-- Ground halftone -->
+        <rect y="530" width="860" height="150" fill="url(#dots-sky)" opacity="0.4"/>
+
+        <!-- ROAD -->
+        <rect y="580" width="860" height="28" fill="#b0956a"/>
+        <rect y="580" width="860" height="28" fill="url(#dots-yellow)" opacity="0.5"/>
+        <!-- Road dashes -->
+        <rect x="60" y="592" width="60" height="5" rx="2" fill="white" opacity="0.8"/>
+        <rect x="200" y="592" width="60" height="5" rx="2" fill="white" opacity="0.8"/>
+        <rect x="340" y="592" width="60" height="5" rx="2" fill="white" opacity="0.8"/>
+        <rect x="480" y="592" width="60" height="5" rx="2" fill="white" opacity="0.8"/>
+        <rect x="620" y="592" width="60" height="5" rx="2" fill="white" opacity="0.8"/>
+        <rect x="760" y="592" width="60" height="5" rx="2" fill="white" opacity="0.8"/>
+
+        <!-- HERO — large dynamic pose, running/leaping with peonies -->
+        <!-- Shadow -->
+        <ellipse cx="320" cy="545" rx="90" ry="18" fill="rgba(0,0,0,0.35)"/>
+
+        <!-- Body torso — red jacket -->
+        <path d="M260,340 Q240,290 260,250 Q280,220 320,215 Q360,220 380,250 Q400,290 380,340 Z" fill="#E8151B" stroke="#1a1108" stroke-width="3"/>
+        <path d="M260,340 Q240,290 260,250 Q280,220 320,215 Q360,220 380,250 Q400,290 380,340 Z" fill="url(#dots-red)" opacity="0.6"/>
+
+        <!-- Blue collar detail -->
+        <path d="M290,215 Q320,230 350,215 L345,235 Q320,248 295,235 Z" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+
+        <!-- Left arm — outstretched holding peonies -->
+        <path d="M260,260 Q220,240 180,220 Q160,212 155,225 Q150,238 170,245 Q190,252 220,268 Q250,280 265,285" fill="#E8151B" stroke="#1a1108" stroke-width="3"/>
+        <!-- Left hand -->
+        <ellipse cx="155" cy="228" rx="16" ry="14" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+        <path d="M142,220 Q138,212 144,210 Q150,208 153,215" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+        <path d="M140,226 Q135,218 141,216 Q147,214 150,221" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+
+        <!-- PEONY BUSHES in hand — iconic clusters -->
+        <g transform="translate(80,145)">
+          <!-- Bush pot / base -->
+          <rect x="42" y="82" width="38" height="28" rx="4" fill="#8B5E3C" stroke="#1a1108" stroke-width="2.5"/>
+          <rect x="38" y="78" width="46" height="10" rx="3" fill="#6B3E1C" stroke="#1a1108" stroke-width="2"/>
+          <!-- Green foliage -->
+          <ellipse cx="61" cy="65" rx="32" ry="28" fill="#3a8a18" stroke="#1a1108" stroke-width="2.5"/>
+          <ellipse cx="46" cy="72" rx="20" ry="16" fill="#2e7010" stroke="#1a1108" stroke-width="2"/>
+          <ellipse cx="76" cy="72" rx="18" ry="14" fill="#2e7010" stroke="#1a1108" stroke-width="2"/>
+          <!-- Peony blooms — flat ink style -->
+          <g transform="translate(61,48)">
+            <!-- Center bloom -->
+            <circle cx="0" cy="0" r="16" fill="#ff6088" stroke="#1a1108" stroke-width="2.5"/>
+            <circle cx="0" cy="0" r="10" fill="#ff3366" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="0" cy="0" r="5" fill="#cc1144" stroke="#1a1108" stroke-width="1"/>
+            <ellipse cx="-13" cy="-6" rx="9" ry="8" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="13" cy="-6" rx="9" ry="8" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="0" cy="-15" rx="9" ry="8" fill="#ff7099" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="-10" cy="11" rx="8" ry="7" fill="#ff7099" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="10" cy="11" rx="8" ry="7" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+          </g>
+          <!-- Second smaller bloom -->
+          <g transform="translate(30,40)">
+            <circle cx="0" cy="0" r="11" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+            <circle cx="0" cy="0" r="6" fill="#ff5580" stroke="#1a1108" stroke-width="1.5"/>
+            <ellipse cx="-9" cy="-4" rx="6" ry="5" fill="#ff88aa" stroke="#1a1108" stroke-width="1.5"/>
+            <ellipse cx="9" cy="-4" rx="6" ry="5" fill="#ff88aa" stroke="#1a1108" stroke-width="1.5"/>
+            <ellipse cx="0" cy="-10" rx="6" ry="5" fill="#ff99bb" stroke="#1a1108" stroke-width="1.5"/>
+          </g>
+        </g>
+
+        <!-- Right arm — fist pumped back for energy -->
+        <path d="M380,265 Q420,250 455,260 Q470,265 468,278 Q466,290 450,292 Q430,294 400,284 Q382,278 378,272" fill="#E8151B" stroke="#1a1108" stroke-width="3"/>
+        <!-- Right fist -->
+        <rect x="458" y="262" width="24" height="22" rx="5" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+        <line x1="458" y1="270" x2="482" y2="270" stroke="#1a1108" stroke-width="1.5"/>
+        <line x1="458" y1="276" x2="482" y2="276" stroke="#1a1108" stroke-width="1.5"/>
+
+        <!-- Legs — dynamic running pose -->
+        <!-- Left leg back -->
+        <path d="M275,340 Q255,390 235,430 Q225,455 232,465 Q240,475 255,470 Q268,464 278,440 Q295,400 305,355" fill="#1a4a9e" stroke="#1a1108" stroke-width="3"/>
+        <!-- Right leg forward -->
+        <path d="M355,340 Q380,385 400,420 Q415,450 408,462 Q400,474 385,470 Q370,466 362,440 Q345,405 330,358" fill="#1a4a9e" stroke="#1a1108" stroke-width="3"/>
+        <!-- Left shoe -->
+        <path d="M225,465 Q215,462 210,470 Q206,478 218,482 Q235,486 260,478 Q272,472 268,462" fill="#1a1108" stroke="#1a1108" stroke-width="2"/>
+        <!-- Right shoe -->
+        <path d="M382,468 Q370,465 365,473 Q361,481 374,484 Q392,487 416,477 Q428,470 422,461" fill="#1a1108" stroke="#1a1108" stroke-width="2"/>
+
+        <!-- HEAD — classic Marvel hero head -->
+        <ellipse cx="320" cy="178" rx="52" ry="58" fill="#f0c080" stroke="#1a1108" stroke-width="3.5"/>
+        <!-- Hair — dark, swept back -->
+        <path d="M272,160 Q275,110 320,100 Q365,110 368,160 Q360,140 340,132 Q320,128 300,132 Q282,140 272,160Z" fill="#2a1a0a" stroke="#1a1108" stroke-width="2.5"/>
+        <!-- Side hair sweep -->
+        <path d="M272,162 Q265,148 268,135 Q280,118 290,128 Q278,138 278,158" fill="#2a1a0a" stroke="#1a1108" stroke-width="2"/>
+        <!-- Skin shadow on face -->
+        <path d="M285,185 Q290,200 310,205 Q320,207 330,205 Q350,200 355,185" fill="#d4955a" stroke="none" opacity="0.5"/>
+        <!-- Eyes — determined, heroic -->
+        <ellipse cx="300" cy="175" rx="11" ry="9" fill="white" stroke="#1a1108" stroke-width="2.5"/>
+        <ellipse cx="340" cy="175" rx="11" ry="9" fill="white" stroke="#1a1108" stroke-width="2.5"/>
+        <circle cx="303" cy="176" r="6" fill="#2a1a0a"/>
+        <circle cx="343" cy="176" r="6" fill="#2a1a0a"/>
+        <circle cx="305" cy="174" r="2" fill="white"/>
+        <circle cx="345" cy="174" r="2" fill="white"/>
+        <!-- Determined brow -->
+        <path d="M290,165 Q300,158 312,162" fill="none" stroke="#2a1a0a" stroke-width="3" stroke-linecap="round"/>
+        <path d="M328,162 Q340,158 352,165" fill="none" stroke="#2a1a0a" stroke-width="3" stroke-linecap="round"/>
+        <!-- Nose -->
+        <path d="M318,178 Q315,190 319,196 Q323,198 327,196 Q331,190 328,178" fill="none" stroke="#c87840" stroke-width="2" stroke-linecap="round"/>
+        <!-- Mouth — slight smile, determined -->
+        <path d="M302,208 Q320,218 338,208" fill="none" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Ear -->
+        <path d="M268,172 Q260,180 262,192 Q265,202 272,198 Q268,190 270,178Z" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+
+        <!-- Speed lines behind figure -->
+        <g opacity="0.7">
+          <line x1="450" y1="200" x2="860" y2="180" stroke="#FFE000" stroke-width="2"/>
+          <line x1="452" y1="260" x2="860" y2="250" stroke="#FFE000" stroke-width="3"/>
+          <line x1="448" y1="320" x2="860" y2="320" stroke="#FFE000" stroke-width="2"/>
+          <line x1="445" y1="380" x2="860" y2="390" stroke="#FFE000" stroke-width="2.5"/>
+          <line x1="448" y1="430" x2="860" y2="450" stroke="#FFE000" stroke-width="1.5"/>
+        </g>
+
+        <!-- Floating hearts from peonies -->
+        <text x="100" y="120" font-family="Bangers,cursive" font-size="22" fill="#E8151B" stroke="#1a1108" stroke-width="3" paint-order="stroke" transform="rotate(-15,100,120)">&#9829;</text>
+        <text x="50" y="95" font-family="Bangers,cursive" font-size="16" fill="#ff5580" stroke="#1a1108" stroke-width="2.5" paint-order="stroke" transform="rotate(8,50,95)">&#9829;</text>
+        <text x="140" y="80" font-family="Bangers,cursive" font-size="18" fill="#ff6088" stroke="#1a1108" stroke-width="2.5" paint-order="stroke" transform="rotate(-5,140,80)">&#9829;</text>
+
+        <!-- SFX -->
+        <text x="490" y="300" font-family="Bangers,cursive" font-size="68" fill="#FFE000" stroke="#1a1108" stroke-width="6" paint-order="stroke" transform="rotate(-12,490,300)" letter-spacing="2">WHOOOOSH!</text>
+
+        <!-- Bottom ink border -->
+        <rect y="660" width="860" height="20" fill="#1a1108"/>
+      </svg>
+
+      <!-- Cover bottom text -->
+      <div style="background:var(--ink);color:var(--marvel-yellow);font-family:'Bangers',cursive;font-size:12px;letter-spacing:2px;padding:6px 20px;display:flex;justify-content:space-between;align-items:center;border-top:3px solid var(--marvel-yellow);">
+        <span>&#9733; A TALE OF DETERMINATION, FLOWERS &amp; TRUE LOVE &#9733;</span>
+        <span>MARVEL COMICS &copy; 2024</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PAGE 1: THE MISSION BEGINS                  -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="comic-page" id="page-1">
+    <div class="story-page">
+      <div class="halftone"></div>
+      <div class="page-header">
+        <span>THE PEONY PURSUIT &nbsp;&#9733;&nbsp; "482 MILES FOR LOVE"</span>
+        <span>PAGE 1</span>
+      </div>
+
+      <div class="panel-layout" style="position:relative;z-index:1;display:grid;grid-template-rows:auto auto;grid-template-columns:1fr 1fr;gap:6px;">
+
+        <!-- PANEL 1: Wide establishing — top full width -->
+        <div class="panel panel-wide" style="grid-column:1/3;background:#87ceeb;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(0,0,0,0.1) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="320" viewBox="0 0 840 320" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <pattern id="d1" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1" fill="rgba(0,0,0,0.1)"/></pattern>
+              <pattern id="d2" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" fill="rgba(0,0,0,0.12)"/></pattern>
+            </defs>
+            <!-- Sky -->
+            <rect width="840" height="320" fill="#87ceeb"/>
+            <rect width="840" height="320" fill="url(#d1)"/>
+            <!-- Clouds -->
+            <ellipse cx="120" cy="60" rx="65" ry="32" fill="white" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="155" cy="48" rx="48" ry="36" fill="white" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="90" cy="55" rx="38" ry="28" fill="white" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="640" cy="50" rx="70" ry="30" fill="white" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="680" cy="38" rx="50" ry="34" fill="white" stroke="#1a1108" stroke-width="2"/>
+            <!-- Sun -->
+            <circle cx="740" cy="55" r="35" fill="#FFE000" stroke="#1a1108" stroke-width="2.5"/>
+            <!-- Sun rays -->
+            <line x1="740" y1="10" x2="740" y2="2" stroke="#FFE000" stroke-width="3"/>
+            <line x1="740" y1="108" x2="740" y2="100" stroke="#FFE000" stroke-width="3"/>
+            <line x1="697" y1="55" x2="689" y2="55" stroke="#FFE000" stroke-width="3"/>
+            <line x1="783" y1="55" x2="791" y2="55" stroke="#FFE000" stroke-width="3"/>
+            <line x1="709" y1="24" x2="703" y2="18" stroke="#FFE000" stroke-width="3"/>
+            <line x1="771" y1="24" x2="777" y2="18" stroke="#FFE000" stroke-width="3"/>
+            <!-- Ground -->
+            <rect y="230" width="840" height="90" fill="#4a8a20" stroke="#1a1108" stroke-width="2"/>
+            <rect y="245" width="840" height="75" fill="#3a7a12"/>
+            <!-- Path -->
+            <path d="M0,265 Q420,250 840,265" fill="none" stroke="#c4a886" stroke-width="22"/>
+            <path d="M0,265 Q420,250 840,265" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="4" stroke-dasharray="20,12"/>
+            <!-- Trees -->
+            <ellipse cx="60" cy="210" rx="40" ry="42" fill="#2a6a10" stroke="#1a1108" stroke-width="2.5"/>
+            <rect x="54" y="230" width="12" height="25" fill="#6B3E1C" stroke="#1a1108" stroke-width="2"/>
+            <ellipse cx="760" cy="208" rx="44" ry="44" fill="#2a6a10" stroke="#1a1108" stroke-width="2.5"/>
+            <rect x="754" y="228" width="12" height="28" fill="#6B3E1C" stroke="#1a1108" stroke-width="2"/>
+            <!-- FLOWER SHOP building -->
+            <rect x="335" y="105" width="170" height="148" fill="#fff5e0" stroke="#1a1108" stroke-width="3.5"/>
+            <polygon points="315,105 525,105 420,62" fill="#E8151B" stroke="#1a1108" stroke-width="3.5"/>
+            <!-- Shop windows -->
+            <rect x="350" y="130" width="44" height="36" rx="3" fill="#b3e8ff" stroke="#1a1108" stroke-width="2.5"/>
+            <line x1="372" y1="130" x2="372" y2="166" stroke="#1a1108" stroke-width="1.5"/>
+            <rect x="446" y="130" width="44" height="36" rx="3" fill="#b3e8ff" stroke="#1a1108" stroke-width="2.5"/>
+            <line x1="468" y1="130" x2="468" y2="166" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- Shop door -->
+            <rect x="397" y="173" width="46" height="80" rx="8" fill="#8B5E3C" stroke="#1a1108" stroke-width="2.5"/>
+            <circle cx="438" cy="213" r="4" fill="#FFE000" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- Shop sign -->
+            <rect x="340" y="108" width="160" height="20" fill="#FFE000" stroke="#1a1108" stroke-width="2"/>
+            <text x="420" y="123" text-anchor="middle" font-family="Bangers,cursive" font-size="13" fill="#1a1108" letter-spacing="1">FLORA'S BLOOMS</text>
+            <!-- Flowers in window display -->
+            <circle cx="362" cy="145" r="10" fill="#ff6088" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="358" cy="138" r="6" fill="#ff3366" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="368" cy="138" r="6" fill="#ff5580" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="458" cy="145" r="10" fill="#ffaa44" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="454" cy="138" r="6" fill="#ff8800" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="464" cy="138" r="6" fill="#ffcc44" stroke="#1a1108" stroke-width="1.5"/>
+
+            <!-- HERO walking toward shop -->
+            <g transform="translate(195,145)">
+              <!-- Body -->
+              <path d="M-20,0 Q-22,-28 -12,-45 Q0,-58 12,-45 Q22,-28 20,0 Z" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <!-- Blue detail -->
+              <path d="M-8,-45 Q0,-38 8,-45 L7,-32 Q0,-26 -7,-32Z" fill="#1a4a9e" stroke="#1a1108" stroke-width="1.5"/>
+              <!-- Legs walking -->
+              <path d="M-10,0 Q-18,25 -22,45 Q-25,55 -20,58 Q-14,61 -10,55 Q-6,44 -2,22" fill="#1a4a9e" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M10,0 Q8,22 12,42 Q15,54 22,55 Q28,55 28,47 Q27,36 20,22 Q14,10 10,0" fill="#1a4a9e" stroke="#1a1108" stroke-width="2.5"/>
+              <!-- Shoes -->
+              <path d="M-28,55 Q-35,53 -36,60 Q-36,66 -22,68 Q-8,69 -6,60 Q-7,53 -12,54" fill="#1a1108" stroke="#1a1108" stroke-width="1.5"/>
+              <path d="M14,52 Q8,50 8,57 Q9,64 22,66 Q36,67 38,58 Q38,52 30,50 Q22,50 22,52" fill="#1a1108" stroke="#1a1108" stroke-width="1.5"/>
+              <!-- Arms -->
+              <path d="M-20,-15 Q-38,-22 -52,-18 Q-60,-14 -58,-6 Q-56,2 -46,2 Q-36,2 -22,-8" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-60" cy="-8" rx="10" ry="9" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <path d="M20,-15 Q34,-18 44,-12 Q50,-6 46,2 Q42,8 34,6 Q24,4 18,-6" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="48" cy="-4" rx="10" ry="9" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <!-- Head -->
+              <ellipse cx="0" cy="-68" rx="26" ry="28" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-24,-72 Q-20,-92 0,-96 Q20,-92 24,-72 Q16,-82 0,-84 Q-16,-82 -24,-72Z" fill="#2a1a0a" stroke="#1a1108" stroke-width="2"/>
+              <!-- Eyes -->
+              <ellipse cx="-9" cy="-68" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="9" cy="-68" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-8" cy="-68" r="3.5" fill="#1a1108"/>
+              <circle cx="10" cy="-68" r="3.5" fill="#1a1108"/>
+              <circle cx="-7" cy="-69" r="1.2" fill="white"/>
+              <circle cx="11" cy="-69" r="1.2" fill="white"/>
+              <!-- Smile -->
+              <path d="M-7,-58 Q0,-53 7,-58" fill="none" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+              <!-- Excited brow -->
+              <path d="M-14,-76 Q-9,-80 -4,-76" fill="none" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4,-76 Q9,-80 14,-76" fill="none" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+            </g>
+          </svg>
+          <div class="caption" style="top:10px;left:10px;">Our hero wakes with a plan...</div>
+          <div class="speech tail-bl rect panel-speech" style="top:14px;left:190px;max-width:200px;border-radius:10px;font-size:11px;">
+            Today is the day! I'm going to get her the peonies she's always wanted — no matter what it takes!
+          </div>
+        </div>
+
+        <!-- PANEL 2: Bottom left — closeup face -->
+        <div class="panel" style="background:#fff5e0;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(200,150,0,0.12) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="340" viewBox="0 0 420 340" preserveAspectRatio="xMidYMid slice">
+            <!-- BG color wash -->
+            <rect width="420" height="340" fill="#fff5e0"/>
+            <!-- Big face close-up / dramatic angle -->
+            <!-- Neck / shoulders -->
+            <rect x="130" y="240" width="160" height="100" rx="8" fill="#E8151B" stroke="#1a1108" stroke-width="3"/>
+            <!-- Blue collar -->
+            <path d="M165,240 Q210,255 255,240 L248,265 Q210,278 172,265Z" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+            <!-- Neck -->
+            <rect x="182" y="210" width="56" height="36" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+            <!-- HEAD large -->
+            <ellipse cx="210" cy="160" rx="90" ry="95" fill="#f0c080" stroke="#1a1108" stroke-width="3.5"/>
+            <!-- Hair -->
+            <path d="M122,148 Q126,80 210,68 Q294,80 298,148 Q284,112 258,104 Q210,96 162,104 Q136,112 122,148Z" fill="#2a1a0a" stroke="#1a1108" stroke-width="2.5"/>
+            <path d="M122,150 Q114,128 118,108 Q130,84 144,96 Q130,110 128,146" fill="#2a1a0a" stroke="#1a1108" stroke-width="2"/>
+            <!-- Ear -->
+            <path d="M120,155 Q110,167 112,183 Q115,196 124,192 Q120,182 121,165Z" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+            <!-- Shadow under cheek -->
+            <path d="M145,185 Q160,210 210,215 Q260,210 275,185" fill="#d4955a" stroke="none" opacity="0.4"/>
+            <!-- Eyes — large, determined -->
+            <ellipse cx="178" cy="155" rx="18" ry="16" fill="white" stroke="#1a1108" stroke-width="3"/>
+            <ellipse cx="242" cy="155" rx="18" ry="16" fill="white" stroke="#1a1108" stroke-width="3"/>
+            <circle cx="182" cy="157" r="10" fill="#2a1a0a"/>
+            <circle cx="246" cy="157" r="10" fill="#2a1a0a"/>
+            <circle cx="186" cy="154" r="3.5" fill="white"/>
+            <circle cx="250" cy="154" r="3.5" fill="white"/>
+            <!-- Strong brow — determined -->
+            <path d="M160,135 Q178,125 196,132" fill="none" stroke="#2a1a0a" stroke-width="5" stroke-linecap="round"/>
+            <path d="M224,132 Q242,125 260,135" fill="none" stroke="#2a1a0a" stroke-width="5" stroke-linecap="round"/>
+            <!-- Nose -->
+            <path d="M206,165 Q200,182 205,192 Q210,197 215,192 Q220,182 214,165" fill="none" stroke="#c87840" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Smile wide -->
+            <path d="M172,210 Q210,228 248,210" fill="none" stroke="#1a1108" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M172,210 Q178,218 186,216" fill="#cc6644" stroke="none"/>
+            <path d="M248,210 Q242,218 234,216" fill="#cc6644" stroke="none"/>
+            <!-- Peonies held up to face -->
+            <g transform="translate(330,180)">
+              <ellipse cx="0" cy="20" rx="22" ry="14" fill="#3a8a18" stroke="#1a1108" stroke-width="2.5"/>
+              <circle cx="0" cy="0" r="18" fill="#ff6088" stroke="#1a1108" stroke-width="3"/>
+              <circle cx="0" cy="0" r="11" fill="#ff3366" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="0" cy="0" r="5" fill="#cc1144"/>
+              <ellipse cx="-15" cy="-8" rx="10" ry="9" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="15" cy="-8" rx="10" ry="9" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="0" cy="-17" rx="10" ry="8" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="-12" cy="12" rx="9" ry="8" fill="#ff7099" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="12" cy="12" rx="9" ry="8" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+            </g>
+          </svg>
+          <div class="caption" style="top:10px;left:10px;font-size:11px;">He'd searched every listing...</div>
+          <div class="speech tail-tl rect" style="bottom:14px;left:10px;max-width:180px;font-size:10px;">
+            ...She loves peonies more than anything. I'm making this happen.
+          </div>
+        </div>
+
+        <!-- PANEL 3: Bottom right — arriving at shop -->
+        <div class="panel" style="background:#ffe8d0;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(220,100,0,0.1) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="340" viewBox="0 0 420 340" preserveAspectRatio="xMidYMid slice">
+            <rect width="420" height="340" fill="#ffe8d0"/>
+            <!-- Ground -->
+            <rect y="240" width="420" height="100" fill="#4a8a20" stroke="#1a1108" stroke-width="2"/>
+            <rect y="256" width="420" height="84" fill="#3a7a12"/>
+            <path d="M0,270 Q210,258 420,270" fill="none" stroke="#c4a886" stroke-width="18"/>
+            <!-- Shop close-up -->
+            <rect x="100" y="60" width="220" height="195" fill="#fff5e0" stroke="#1a1108" stroke-width="3.5"/>
+            <polygon points="78,60 342,60 210,22" fill="#E8151B" stroke="#1a1108" stroke-width="3.5"/>
+            <rect x="116" y="88" width="52" height="42" rx="3" fill="#b3e8ff" stroke="#1a1108" stroke-width="2.5"/>
+            <line x1="142" y1="88" x2="142" y2="130" stroke="#1a1108" stroke-width="1.5"/>
+            <rect x="252" y="88" width="52" height="42" rx="3" fill="#b3e8ff" stroke="#1a1108" stroke-width="2.5"/>
+            <line x1="278" y1="88" x2="278" y2="130" stroke="#1a1108" stroke-width="1.5"/>
+            <rect x="182" y="140" width="56" height="115" rx="6" fill="#8B5E3C" stroke="#1a1108" stroke-width="2.5"/>
+            <circle cx="232" cy="198" r="5" fill="#FFE000" stroke="#1a1108" stroke-width="1.5"/>
+            <rect x="112" y="62" width="196" height="22" fill="#FFE000" stroke="#1a1108" stroke-width="2"/>
+            <text x="210" y="78" text-anchor="middle" font-family="Bangers,cursive" font-size="14" fill="#1a1108" letter-spacing="1">FLORA'S BLOOMS</text>
+            <!-- Hero entering -->
+            <g transform="translate(78,195)">
+              <ellipse cx="0" cy="-60" rx="20" ry="22" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-18,-68 Q-14,-84 0,-88 Q14,-84 18,-68 Q10,-76 0,-78 Q-10,-76 -18,-68Z" fill="#2a1a0a" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="-7" cy="-60" rx="5" ry="4.5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="7" cy="-60" rx="5" ry="4.5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-6" cy="-60" r="3" fill="#1a1108"/>
+              <circle cx="8" cy="-60" r="3" fill="#1a1108"/>
+              <path d="M-5,-50 Q0,-46 5,-50" fill="none" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+              <rect x="-17" y="-38" width="34" height="26" rx="4" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-8,-38 Q0,-32 8,-38 L7,-24 Q0,-18 -7,-24Z" fill="#1a4a9e" stroke="#1a1108" stroke-width="1.5"/>
+              <rect x="-13" y="-12" width="12" height="18" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+              <rect x="2" y="-12" width="12" height="18" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+              <path d="M-17,-24 Q-32,-28 -40,-22 Q-46,-16 -42,-8 Q-38,0 -28,0 Q-20,0 -15,-10" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-44" cy="-12" rx="9" ry="8" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <path d="M17,-24 Q30,-26 38,-18 Q44,-10 40,-2 Q36,6 26,5 Q18,4 14,-8" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="42" cy="-8" rx="9" ry="8" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+            </g>
+            <!-- SFX -->
+            <text x="200" y="52" font-family="Bangers,cursive" font-size="20" fill="#E8151B" stroke="#1a1108" stroke-width="3" paint-order="stroke" transform="rotate(-5,200,52)">MADE IT!</text>
+          </svg>
+          <div class="caption" style="top:10px;right:10px;font-size:11px;">Flora's Blooms — last hope!</div>
+          <div class="speech tail-tl rect" style="bottom:18px;right:10px;max-width:170px;font-size:10px;">
+            Excuse me — do you have any peonies? I need two whole bushes!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PAGE 2: THE PURCHASE & THE JOURNEY          -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="comic-page" id="page-2">
+    <div class="story-page">
+      <div class="halftone"></div>
+      <div class="page-header">
+        <span>THE PEONY PURSUIT &nbsp;&#9733;&nbsp; "THE LONG ROAD"</span>
+        <span>PAGE 2</span>
+      </div>
+
+      <div class="panel-layout" style="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:6px;">
+
+        <!-- Panel 1: Shopkeeper reaction — top left 2 cols -->
+        <div class="panel panel-wide" style="grid-column:1/3;background:#e8f8ff;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(0,50,200,0.1) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="300" viewBox="0 0 560 300" preserveAspectRatio="xMidYMid slice">
+            <rect width="560" height="300" fill="#e8f8ff"/>
+            <!-- Interior shop warm tones -->
+            <rect y="200" width="560" height="100" fill="#8B5E3C"/>
+            <rect y="215" width="560" height="85" fill="#6B3E1C"/>
+            <!-- Counter -->
+            <rect y="185" width="560" height="30" fill="#a0713a" stroke="#1a1108" stroke-width="2.5"/>
+            <!-- Shelf behind with flowers -->
+            <rect x="0" y="0" width="560" height="185" fill="#fff9f0"/>
+            <!-- Wallpaper stripes -->
+            <rect x="0" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="60" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="120" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="180" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="240" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="300" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="360" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="420" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <rect x="480" y="0" width="30" height="185" fill="#ffe0d0" opacity="0.5"/>
+            <!-- Flowers on shelf -->
+            <g transform="translate(0,40)">
+              <g transform="translate(50,0)"><circle cx="0" cy="0" r="12" fill="#ff6088" stroke="#1a1108" stroke-width="2"/><circle cx="0" cy="0" r="7" fill="#ff3366" stroke="#1a1108" stroke-width="1.5"/><rect x="-4" y="10" width="8" height="20" fill="#3a8a18" stroke="#1a1108" stroke-width="1.5"/></g>
+              <g transform="translate(90,0)"><circle cx="0" cy="0" r="11" fill="#ffaa44" stroke="#1a1108" stroke-width="2"/><circle cx="0" cy="0" r="6" fill="#ff8800" stroke="#1a1108" stroke-width="1.5"/><rect x="-4" y="10" width="8" height="18" fill="#3a8a18" stroke="#1a1108" stroke-width="1.5"/></g>
+              <g transform="translate(130,0)"><circle cx="0" cy="0" r="12" fill="#aa55ff" stroke="#1a1108" stroke-width="2"/><circle cx="0" cy="0" r="6" fill="#8833cc" stroke="#1a1108" stroke-width="1.5"/><rect x="-4" y="10" width="8" height="20" fill="#3a8a18" stroke="#1a1108" stroke-width="1.5"/></g>
+              <g transform="translate(170,0)"><circle cx="0" cy="0" r="10" fill="#ff6088" stroke="#1a1108" stroke-width="2"/><rect x="-4" y="10" width="8" height="18" fill="#3a8a18" stroke="#1a1108" stroke-width="1.5"/></g>
+            </g>
+            <!-- SHOPKEEPER — green apron, warm face -->
+            <g transform="translate(120,105)">
+              <!-- Body / apron -->
+              <path d="M-28,0 Q-30,-32 -18,-52 Q-6,-68 0,-70 Q6,-68 18,-52 Q30,-32 28,0Z" fill="#4a8a20" stroke="#1a1108" stroke-width="3"/>
+              <path d="M-18,-52 Q0,-44 18,-52 L16,-36 Q0,-28 -16,-36Z" fill="#fff9f0" stroke="#1a1108" stroke-width="1.5"/>
+              <!-- Crossed apron straps -->
+              <path d="M-10,-36 Q0,-28 10,-36" fill="none" stroke="#fff9f0" stroke-width="3"/>
+              <!-- Arms spread wide excited -->
+              <path d="M-28,-20 Q-55,-28 -72,-20 Q-80,-14 -76,-4 Q-72,6 -60,4 Q-45,2 -30,-8" fill="#f5c88a" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-78" cy="-8" rx="12" ry="10" fill="#f5c88a" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M28,-20 Q55,-28 72,-20 Q80,-14 76,-4 Q72,6 60,4 Q45,2 30,-8" fill="#f5c88a" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="78" cy="-8" rx="12" ry="10" fill="#f5c88a" stroke="#1a1108" stroke-width="2.5"/>
+              <!-- HEAD shopkeeper — older, jolly -->
+              <ellipse cx="0" cy="-88" rx="32" ry="30" fill="#f5c88a" stroke="#1a1108" stroke-width="3"/>
+              <!-- Curly grey hair -->
+              <path d="M-30,-96 Q-28,-116 0,-120 Q28,-116 30,-96 Q22,-110 0,-112 Q-22,-110 -30,-96Z" fill="#b8b8b8" stroke="#1a1108" stroke-width="2"/>
+              <path d="M-30,-98 Q-38,-108 -36,-118 Q-28,-126 -22,-118 Q-30,-110 -30,-100" fill="#b8b8b8" stroke="#1a1108" stroke-width="2"/>
+              <path d="M30,-98 Q38,-108 36,-118 Q28,-126 22,-118 Q30,-110 30,-100" fill="#b8b8b8" stroke="#1a1108" stroke-width="2"/>
+              <!-- Eyes — wide excited -->
+              <ellipse cx="-11" cy="-90" rx="8" ry="7" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="11" cy="-90" rx="8" ry="7" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-10" cy="-90" r="5" fill="#2a6a10"/>
+              <circle cx="12" cy="-90" r="5" fill="#2a6a10"/>
+              <circle cx="-8" cy="-91" r="1.8" fill="white"/>
+              <circle cx="14" cy="-91" r="1.8" fill="white"/>
+              <!-- Raised eyebrows -->
+              <path d="M-18,-100 Q-10,-106 -3,-100" fill="none" stroke="#888" stroke-width="3" stroke-linecap="round"/>
+              <path d="M3,-100 Q11,-106 19,-100" fill="none" stroke="#888" stroke-width="3" stroke-linecap="round"/>
+              <!-- Big open smile -->
+              <path d="M-14,-75 Q0,-64 14,-75" fill="none" stroke="#1a1108" stroke-width="3" stroke-linecap="round"/>
+              <path d="M-10,-75 Q-6,-68 0,-66 Q6,-68 10,-75" fill="#E8151B" stroke="none"/>
+              <!-- Rosy cheeks -->
+              <ellipse cx="-18" cy="-82" rx="7" ry="5" fill="#e87878" opacity="0.5"/>
+              <ellipse cx="18" cy="-82" rx="7" ry="5" fill="#e87878" opacity="0.5"/>
+              <!-- Legs -->
+              <rect x="-14" y="0" width="12" height="22" rx="3" fill="#4a4a4a" stroke="#1a1108" stroke-width="2"/>
+              <rect x="3" y="0" width="12" height="22" rx="3" fill="#4a4a4a" stroke="#1a1108" stroke-width="2"/>
+            </g>
+            <!-- HERO on other side of counter -->
+            <g transform="translate(390,118)">
+              <path d="M-20,0 Q-22,-30 -12,-46 Q0,-58 12,-46 Q22,-30 20,0Z" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-9,-46 Q0,-39 9,-46 L8,-33 Q0,-26 -8,-33Z" fill="#1a4a9e" stroke="#1a1108" stroke-width="1.5"/>
+              <rect x="-12" y="0" width="10" height="16" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+              <rect x="2" y="0" width="10" height="16" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+              <path d="M-20,-16 Q-35,-20 -44,-14 Q-50,-8 -46,-2 Q-42,4 -32,3 Q-22,2 -18,-8" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-48" cy="-6" rx="9" ry="8" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <path d="M20,-16 Q34,-18 42,-10 Q48,-2 43,4 Q38,8 28,6 Q18,4 16,-6" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="46" cy="-2" rx="9" ry="8" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="0" cy="-66" rx="22" ry="24" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-20,-72 Q-16,-90 0,-94 Q16,-90 20,-72 Q12,-82 0,-84 Q-12,-82 -20,-72Z" fill="#2a1a0a" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="-7" cy="-66" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="7" cy="-66" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-6" cy="-66" r="3.5" fill="#1a1108"/>
+              <circle cx="8" cy="-66" r="3.5" fill="#1a1108"/>
+              <path d="M-6,-57 Q0,-52 6,-57" fill="none" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+            </g>
+          </svg>
+          <div class="caption" style="top:10px;left:10px;font-size:11px;">Inside Flora's — miracle of miracles!</div>
+          <div class="speech tail-bl rect" style="top:10px;left:160px;max-width:195px;font-size:11px;border-radius:10px;">
+            Two peony bushes?! Why — we have exactly two left! They're yours, young man. I can see this is for love!
+          </div>
+          <div class="speech tail-tl rect" style="bottom:16px;right:20px;max-width:150px;font-size:10px;border-radius:8px;">
+            YES! I'll take them both! How much?!
+          </div>
+        </div>
+
+        <!-- Panel 2: SOLD — tall right panel -->
+        <div class="panel panel-tall" style="grid-row:1/3;grid-column:3;background:#fff0d0;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(200,150,0,0.12) 1px,transparent 1px);background-size:4px 4px;"></div>
+          <svg width="100%" height="660" viewBox="0 0 280 660" preserveAspectRatio="xMidYMid slice">
+            <rect width="280" height="660" fill="#fff0d0"/>
+            <!-- Top: SOLD stamp look -->
+            <rect width="280" height="160" fill="#E8151B"/>
+            <rect width="280" height="160" fill="url(#d2)"/>
+            <text x="140" y="96" text-anchor="middle" font-family="Bangers,cursive" font-size="72" fill="white" stroke="#1a1108" stroke-width="4" paint-order="stroke" transform="rotate(-10,140,80)" letter-spacing="3">SOLD!</text>
+            <!-- Two peony bushes -->
+            <g transform="translate(80,280)">
+              <!-- Bush pot -->
+              <rect x="-28" y="68" width="56" height="36" rx="5" fill="#8B5E3C" stroke="#1a1108" stroke-width="2.5"/>
+              <rect x="-34" y="62" width="68" height="14" rx="4" fill="#6B3E1C" stroke="#1a1108" stroke-width="2"/>
+              <!-- Foliage -->
+              <ellipse cx="0" cy="42" rx="44" ry="38" fill="#2e7010" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-20" cy="55" rx="28" ry="22" fill="#3a8a18" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="22" cy="54" rx="26" ry="22" fill="#3a8a18" stroke="#1a1108" stroke-width="2"/>
+              <!-- Blooms -->
+              <g transform="translate(0,22)">
+                <circle cx="0" cy="0" r="22" fill="#ff6088" stroke="#1a1108" stroke-width="2.5"/>
+                <circle cx="0" cy="0" r="14" fill="#ff3366" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="0" r="7" fill="#cc1144"/>
+                <ellipse cx="-18" cy="-10" rx="12" ry="10" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="18" cy="-10" rx="12" ry="10" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="0" cy="-20" rx="11" ry="10" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="-14" cy="14" rx="10" ry="9" fill="#ff7099" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="14" cy="14" rx="10" ry="9" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+              </g>
+              <g transform="translate(-24,8)">
+                <circle cx="0" cy="0" r="14" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="0" r="8" fill="#ff5580" stroke="#1a1108" stroke-width="1.5"/>
+                <ellipse cx="-11" cy="-6" rx="8" ry="7" fill="#ff88aa" stroke="#1a1108" stroke-width="1.5"/>
+                <ellipse cx="11" cy="-6" rx="8" ry="7" fill="#ff88aa" stroke="#1a1108" stroke-width="1.5"/>
+                <ellipse cx="0" cy="-13" rx="8" ry="7" fill="#ff99bb" stroke="#1a1108" stroke-width="1.5"/>
+              </g>
+              <g transform="translate(26,10)">
+                <circle cx="0" cy="0" r="13" fill="#ff99bb" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="0" r="7" fill="#ff6688" stroke="#1a1108" stroke-width="1.5"/>
+                <ellipse cx="-10" cy="-6" rx="7" ry="6" fill="#ff99bb" stroke="#1a1108" stroke-width="1.5"/>
+                <ellipse cx="10" cy="-6" rx="7" ry="6" fill="#ff99bb" stroke="#1a1108" stroke-width="1.5"/>
+              </g>
+            </g>
+            <!-- Second bush -->
+            <g transform="translate(200,360)">
+              <rect x="-22" y="52" width="44" height="28" rx="4" fill="#8B5E3C" stroke="#1a1108" stroke-width="2.5"/>
+              <rect x="-28" y="47" width="56" height="11" rx="3" fill="#6B3E1C" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="0" cy="32" rx="36" ry="30" fill="#2e7010" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-16" cy="42" rx="22" ry="18" fill="#3a8a18" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="18" cy="42" rx="20" ry="16" fill="#3a8a18" stroke="#1a1108" stroke-width="2"/>
+              <g transform="translate(0,16)">
+                <circle cx="0" cy="0" r="18" fill="#ff6088" stroke="#1a1108" stroke-width="2.5"/>
+                <circle cx="0" cy="0" r="11" fill="#ff3366" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="0" r="5" fill="#cc1144"/>
+                <ellipse cx="-15" cy="-8" rx="10" ry="9" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="15" cy="-8" rx="10" ry="9" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="0" cy="-17" rx="10" ry="9" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+              </g>
+              <g transform="translate(-18,4)">
+                <circle cx="0" cy="0" r="11" fill="#ff88aa" stroke="#1a1108" stroke-width="1.5"/>
+                <circle cx="0" cy="0" r="6" fill="#ff5580" stroke="#1a1108" stroke-width="1.5"/>
+              </g>
+            </g>
+            <!-- Bottom text -->
+            <text x="140" y="585" text-anchor="middle" font-family="Bangers,cursive" font-size="18" fill="#E8151B" stroke="#1a1108" stroke-width="3" paint-order="stroke">MISSION:</text>
+            <text x="140" y="614" text-anchor="middle" font-family="Bangers,cursive" font-size="18" fill="#1a4a9e" stroke="#1a1108" stroke-width="3" paint-order="stroke">PHASE ONE</text>
+            <text x="140" y="643" text-anchor="middle" font-family="Bangers,cursive" font-size="20" fill="#2a8a18" stroke="#1a1108" stroke-width="3" paint-order="stroke" letter-spacing="1">COMPLETE!</text>
+          </svg>
+        </div>
+
+        <!-- Panel 3: Bottom left — road trip map -->
+        <div class="panel panel-wide" style="grid-column:1/3;background:#c8e6ff;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(0,50,200,0.1) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="348" viewBox="0 0 560 348" preserveAspectRatio="xMidYMid slice">
+            <rect width="560" height="348" fill="#c8e6ff"/>
+            <!-- Map background parchment -->
+            <rect x="20" y="15" width="520" height="200" rx="6" fill="#f5f0d8" stroke="#1a1108" stroke-width="3"/>
+            <!-- Map grid lines -->
+            <line x1="20" y1="55" x2="540" y2="55" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="20" y1="95" x2="540" y2="95" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="20" y1="135" x2="540" y2="135" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="20" y1="175" x2="540" y2="175" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="100" y1="15" x2="100" y2="215" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="200" y1="15" x2="200" y2="215" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="300" y1="15" x2="300" y2="215" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="400" y1="15" x2="400" y2="215" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="480" y1="15" x2="480" y2="215" stroke="#aaa" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.5"/>
+            <!-- Road on map -->
+            <path d="M60,170 Q180,100 280,120 Q380,140 500,80" fill="none" stroke="#c4a886" stroke-width="14" stroke-linecap="round"/>
+            <path d="M60,170 Q180,100 280,120 Q380,140 500,80" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="4" stroke-dasharray="16,10"/>
+            <!-- Distance arrow -->
+            <path d="M60,170 Q280,50 500,80" fill="none" stroke="#E8151B" stroke-width="2.5" stroke-dasharray="10,6"/>
+            <!-- Distance label -->
+            <rect x="210" y="60" width="140" height="28" rx="14" fill="#FFE000" stroke="#1a1108" stroke-width="2"/>
+            <text x="280" y="79" text-anchor="middle" font-family="Bangers,cursive" font-size="14" fill="#1a1108" letter-spacing="1">482 MILES!!</text>
+            <!-- Start marker -->
+            <circle cx="60" cy="170" r="14" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+            <text x="60" y="176" text-anchor="middle" font-family="Bangers,cursive" font-size="12" fill="white">A</text>
+            <text x="60" y="200" text-anchor="middle" font-family="Bangers,cursive" font-size="11" fill="#1a1108">HIS PLACE</text>
+            <!-- End marker -->
+            <circle cx="500" cy="80" r="14" fill="#ff6088" stroke="#1a1108" stroke-width="2.5"/>
+            <text x="500" y="86" text-anchor="middle" font-family="Bangers,cursive" font-size="12" fill="white">B</text>
+            <text x="490" y="110" text-anchor="middle" font-family="Bangers,cursive" font-size="11" fill="#1a1108">HER PLACE</text>
+            <!-- Mini car on road -->
+            <g transform="translate(280,110) rotate(-15)">
+              <rect x="-26" y="-12" width="52" height="22" rx="7" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <rect x="-14" y="-22" width="28" height="14" rx="4" fill="#b3e8ff" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-16" cy="12" r="7" fill="#1a1108" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="16" cy="12" r="7" fill="#1a1108" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-16" cy="12" r="3" fill="#666"/>
+              <circle cx="16" cy="12" r="3" fill="#666"/>
+              <!-- Peonies sticking out -->
+              <circle cx="22" cy="-16" r="8" fill="#ff6088" stroke="#1a1108" stroke-width="1.5"/>
+              <circle cx="22" cy="-16" r="4" fill="#ff3366" stroke="#1a1108" stroke-width="1.5"/>
+              <!-- Speed lines -->
+              <line x1="-26" y1="-4" x2="-48" y2="-4" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+              <line x1="-26" y1="2" x2="-52" y2="0" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+              <line x1="-26" y1="8" x2="-46" y2="8" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <!-- Ground / road -->
+            <rect y="248" width="560" height="100" fill="#4a8a20" stroke="#1a1108" stroke-width="2"/>
+            <rect y="262" width="560" height="86" fill="#3a7a12"/>
+            <path d="M0,275 Q280,262 560,275" fill="none" stroke="#c4a886" stroke-width="20"/>
+            <!-- Hero driving at bottom with bushes in car -->
+            <g transform="translate(140,270) rotate(-5)">
+              <rect x="-46" y="-16" width="92" height="32" rx="10" fill="#E8151B" stroke="#1a1108" stroke-width="3"/>
+              <rect x="-24" y="-32" width="48" height="20" rx="5" fill="#b3e8ff" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-30" cy="18" r="10" fill="#1a1108" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="30" cy="18" r="10" fill="#1a1108" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-30" cy="18" r="4" fill="#555"/>
+              <circle cx="30" cy="18" r="4" fill="#555"/>
+              <!-- Peonies buckled in back window -->
+              <circle cx="18" cy="-26" r="11" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="18" cy="-26" r="6" fill="#ff3366" stroke="#1a1108" stroke-width="1.5"/>
+              <circle cx="30" cy="-24" r="9" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+              <!-- Speed lines -->
+              <line x1="-46" y1="-6" x2="-80" y2="-6" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="-46" y1="2" x2="-88" y2="0" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="-46" y1="10" x2="-78" y2="10" stroke="#1a1108" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <text x="380" y="295" font-family="Bangers,cursive" font-size="30" fill="#FFE000" stroke="#1a1108" stroke-width="4" paint-order="stroke" transform="rotate(-5,380,295)">VROOM!!</text>
+          </svg>
+          <div class="caption" style="top:228px;left:10px;font-size:11px;">482 miles. Two peony bushes. Zero doubts.</div>
+          <div class="speech tail-tl rect" style="bottom:14px;right:12px;max-width:160px;font-size:10px;border-radius:8px;">
+            Peonies buckled in, GPS set. Nothing can stop me now!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PAGE 3: THE KNOCK                           -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="comic-page" id="page-3">
+    <div class="story-page">
+      <div class="halftone"></div>
+      <div class="page-header">
+        <span>THE PEONY PURSUIT &nbsp;&#9733;&nbsp; "KNOCK KNOCK"</span>
+        <span>PAGE 3</span>
+      </div>
+
+      <div class="panel-layout" style="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:6px;">
+
+        <!-- Panel 1: Arrival at house — wide full width -->
+        <div class="panel panel-wide" style="grid-column:1/3;background:#ffead8;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(220,100,0,0.1) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="280" viewBox="0 0 840 280" preserveAspectRatio="xMidYMid slice">
+            <rect width="840" height="280" fill="#ffead8"/>
+            <!-- Sunset sky -->
+            <rect width="840" height="180" fill="#f5a050"/>
+            <rect width="840" height="180" fill="url(#d1)" opacity="0.5"/>
+            <!-- Clouds pink -->
+            <ellipse cx="200" cy="60" rx="70" ry="28" fill="#f8d0b8" stroke="#1a1108" stroke-width="1.5"/>
+            <ellipse cx="240" cy="48" rx="50" ry="32" fill="#f8d0b8" stroke="#1a1108" stroke-width="1.5"/>
+            <ellipse cx="680" cy="45" rx="80" ry="30" fill="#f8d0b8" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- Ground -->
+            <rect y="180" width="840" height="100" fill="#4a8a20" stroke="#1a1108" stroke-width="2"/>
+            <rect y="196" width="840" height="84" fill="#3a7a12"/>
+            <!-- Path to door -->
+            <path d="M0,230 Q200,215 360,220 Q440,222 480,225 L480,280 L0,280Z" fill="#c4a886"/>
+            <!-- HER HOUSE -->
+            <rect x="520" y="80" width="260" height="210" rx="4" fill="#fff5e0" stroke="#1a1108" stroke-width="3.5"/>
+            <polygon points="498,80 802,80 660,32" fill="#d9634e" stroke="#1a1108" stroke-width="3.5"/>
+            <!-- Chimney -->
+            <rect x="720" y="22" width="28" height="42" fill="#b84030" stroke="#1a1108" stroke-width="2.5"/>
+            <rect x="714" y="20" width="40" height="10" rx="2" fill="#a03020" stroke="#1a1108" stroke-width="2"/>
+            <!-- Windows with curtains -->
+            <rect x="540" y="104" width="60" height="50" rx="3" fill="#b3e8ff" stroke="#1a1108" stroke-width="2.5"/>
+            <line x1="570" y1="104" x2="570" y2="154" stroke="#1a1108" stroke-width="1.5"/>
+            <line x1="540" y1="129" x2="600" y2="129" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- Curtains -->
+            <path d="M542,106 Q552,115 548,130 Q544,145 542,152" fill="#ff99bb" stroke="#1a1108" stroke-width="1.5"/>
+            <path d="M598,106 Q588,115 592,130 Q596,145 598,152" fill="#ff99bb" stroke="#1a1108" stroke-width="1.5"/>
+            <rect x="702" y="104" width="60" height="50" rx="3" fill="#b3e8ff" stroke="#1a1108" stroke-width="2.5"/>
+            <line x1="732" y1="104" x2="732" y2="154" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- House door — main -->
+            <rect x="612" y="168" width="76" height="122" rx="8" fill="#8B5E3C" stroke="#1a1108" stroke-width="3"/>
+            <circle cx="682" cy="230" r="7" fill="#FFE000" stroke="#1a1108" stroke-width="2"/>
+            <!-- Door panels -->
+            <rect x="620" y="178" width="28" height="32" rx="3" fill="#7a4e2c" stroke="#1a1108" stroke-width="1.5"/>
+            <rect x="654" y="178" width="28" height="32" rx="3" fill="#7a4e2c" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- Flower boxes under windows -->
+            <rect x="534" y="152" width="72" height="16" rx="4" fill="#8B5E3C" stroke="#1a1108" stroke-width="2"/>
+            <circle cx="548" cy="148" r="7" fill="#ff88aa" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="562" cy="144" r="8" fill="#ff6088" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="576" cy="146" r="7" fill="#ff99bb" stroke="#1a1108" stroke-width="1.5"/>
+            <circle cx="590" cy="147" r="7" fill="#ff6088" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- HERO at door with two peony bushes -->
+            <g transform="translate(490,175)">
+              <!-- Bush left held in arm -->
+              <g transform="translate(-55,-20) scale(0.7)">
+                <rect x="-24" y="60" width="48" height="30" rx="4" fill="#8B5E3C" stroke="#1a1108" stroke-width="2"/>
+                <rect x="-30" y="55" width="60" height="12" rx="3" fill="#6B3E1C" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="0" cy="38" rx="38" ry="32" fill="#2e7010" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="18" r="18" fill="#ff6088" stroke="#1a1108" stroke-width="2.5"/>
+                <circle cx="0" cy="18" r="11" fill="#ff3366" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="18" r="5" fill="#cc1144"/>
+                <ellipse cx="-15" cy="8" rx="10" ry="9" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="15" cy="8" rx="10" ry="9" fill="#ff6088" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="0" cy="-2" rx="9" ry="8" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+              </g>
+              <!-- Bush right held in other arm -->
+              <g transform="translate(55,-15) scale(0.7)">
+                <rect x="-24" y="60" width="48" height="30" rx="4" fill="#8B5E3C" stroke="#1a1108" stroke-width="2"/>
+                <rect x="-30" y="55" width="60" height="12" rx="3" fill="#6B3E1C" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="0" cy="38" rx="38" ry="32" fill="#2e7010" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="18" r="18" fill="#ff88aa" stroke="#1a1108" stroke-width="2.5"/>
+                <circle cx="0" cy="18" r="11" fill="#ff5580" stroke="#1a1108" stroke-width="2"/>
+                <circle cx="0" cy="18" r="5" fill="#cc1144"/>
+                <ellipse cx="-15" cy="8" rx="10" ry="9" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+                <ellipse cx="15" cy="8" rx="10" ry="9" fill="#ff88aa" stroke="#1a1108" stroke-width="2"/>
+              </g>
+              <!-- Body holding bushes -->
+              <path d="M-28,0 Q-30,-35 -18,-55 Q-6,-70 0,-72 Q6,-70 18,-55 Q30,-35 28,0Z" fill="#E8151B" stroke="#1a1108" stroke-width="3"/>
+              <path d="M-10,-55 Q0,-48 10,-55 L9,-40 Q0,-33 -9,-40Z" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+              <!-- Arms holding outward -->
+              <path d="M-28,-24 Q-52,-30 -72,-22 Q-82,-14 -78,-2 Q-74,8 -60,7 Q-44,5 -30,-8" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-80" cy="-6" rx="11" ry="10" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <path d="M28,-24 Q52,-30 72,-22 Q82,-14 78,-2 Q74,8 60,7 Q44,5 30,-8" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="80" cy="-6" rx="11" ry="10" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <!-- Legs -->
+              <rect x="-18" y="0" width="14" height="20" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2.5"/>
+              <rect x="5" y="0" width="14" height="20" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-24,18 Q-30,16 -32,23 Q-32,29 -18,30 Q-6,31 -5,22" fill="#1a1108" stroke="#1a1108" stroke-width="1.5"/>
+              <path d="M7,18 Q4,16 2,23 Q2,29 14,30 Q26,31 27,22" fill="#1a1108" stroke="#1a1108" stroke-width="1.5"/>
+              <!-- HEAD -->
+              <ellipse cx="0" cy="-88" rx="28" ry="30" fill="#f0c080" stroke="#1a1108" stroke-width="3"/>
+              <path d="M-26,-94 Q-22,-116 0,-120 Q22,-116 26,-94 Q18,-108 0,-110 Q-18,-108 -26,-94Z" fill="#2a1a0a" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-9" cy="-88" rx="8" ry="7" fill="white" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="9" cy="-88" rx="8" ry="7" fill="white" stroke="#1a1108" stroke-width="2.5"/>
+              <circle cx="-8" cy="-88" r="5" fill="#2a1a0a"/>
+              <circle cx="10" cy="-88" r="5" fill="#2a1a0a"/>
+              <circle cx="-6" cy="-89" r="1.8" fill="white"/>
+              <circle cx="12" cy="-89" r="1.8" fill="white"/>
+              <!-- Nervous smile -->
+              <path d="M-7,-73 Q0,-67 7,-73" fill="none" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- Sweat drop -->
+              <path d="M22,-105 Q26,-112 22,-116 Q18,-120 16,-114 Q14,-108 18,-106 Q20,-105 22,-105Z" fill="#88ccff" stroke="#1a1108" stroke-width="1.5"/>
+            </g>
+            <!-- SFX -->
+            <text x="378" y="175" font-family="Bangers,cursive" font-size="42" fill="#FFE000" stroke="#1a1108" stroke-width="5" paint-order="stroke" transform="rotate(-8,378,175)" letter-spacing="2">KNOCK!</text>
+            <text x="370" y="215" font-family="Bangers,cursive" font-size="40" fill="#FFE000" stroke="#1a1108" stroke-width="5" paint-order="stroke" transform="rotate(5,370,215)" letter-spacing="2">KNOCK!</text>
+          </svg>
+          <div class="caption" style="top:10px;left:10px;font-size:11px;">482 miles later... her doorstep.</div>
+          <div class="speech tail-bl rect" style="bottom:14px;left:10px;max-width:200px;font-size:10px;">
+            They might be out of season... but coding never is. I hope she likes them.
+          </div>
+        </div>
+
+        <!-- Panel 2: Her face at window -->
+        <div class="panel" style="background:#ffd8f0;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(180,0,100,0.1) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="360" viewBox="0 0 420 360" preserveAspectRatio="xMidYMid slice">
+            <rect width="420" height="360" fill="#ffd8f0"/>
+            <!-- Window frame -->
+            <rect x="30" y="20" width="360" height="280" rx="6" fill="#8B5E3C" stroke="#1a1108" stroke-width="4"/>
+            <rect x="42" y="32" width="336" height="256" rx="4" fill="#b3e8ff" stroke="#1a1108" stroke-width="3"/>
+            <!-- Window cross -->
+            <rect x="42" y="156" width="336" height="8" fill="#8B5E3C" stroke="#1a1108" stroke-width="1.5"/>
+            <rect x="206" y="32" width="8" height="256" fill="#8B5E3C" stroke="#1a1108" stroke-width="1.5"/>
+            <!-- Curtains pulled aside -->
+            <path d="M44,34 Q80,80 70,150 Q65,200 50,250" fill="#ff88cc" stroke="#1a1108" stroke-width="2.5"/>
+            <path d="M376,34 Q340,80 350,150 Q355,200 370,250" fill="#ff88cc" stroke="#1a1108" stroke-width="2.5"/>
+            <!-- GF face large close-up -->
+            <g transform="translate(210,148)">
+              <!-- Neck -->
+              <rect x="-24" y="42" width="48" height="36" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <!-- Body top -->
+              <rect x="-60" y="76" width="120" height="60" rx="4" fill="#ff88cc" stroke="#1a1108" stroke-width="2.5"/>
+              <!-- HEAD large dramatic -->
+              <ellipse cx="0" cy="0" rx="82" ry="88" fill="#f0c080" stroke="#1a1108" stroke-width="3.5"/>
+              <!-- Purple curly hair -->
+              <path d="M-78,-20 Q-80,-80 0,-96 Q80,-80 78,-20 Q65,-65 35,-75 Q0,-82 -35,-75 Q-65,-65 -78,-20Z" fill="#8B3A9E" stroke="#1a1108" stroke-width="3"/>
+              <!-- Hair curls / volume -->
+              <path d="M-78,-22 Q-90,-50 -84,-70 Q-76,-86 -62,-78 Q-72,-64 -72,-40 Q-72,-28 -74,-18" fill="#8B3A9E" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M78,-22 Q90,-50 84,-70 Q76,-86 62,-78 Q72,-64 72,-40 Q72,-28 74,-18" fill="#8B3A9E" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-50" cy="-60" rx="14" ry="10" fill="#7a2a8e" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="50" cy="-60" rx="14" ry="10" fill="#7a2a8e" stroke="#1a1108" stroke-width="2"/>
+              <!-- Shadow cheek -->
+              <path d="M-50,15 Q-30,38 0,42 Q30,38 50,15" fill="#d4955a" stroke="none" opacity="0.35"/>
+              <!-- EYES — big surprised / happy -->
+              <ellipse cx="-26" cy="0" rx="20" ry="19" fill="white" stroke="#1a1108" stroke-width="3"/>
+              <ellipse cx="26" cy="0" rx="20" ry="19" fill="white" stroke="#1a1108" stroke-width="3"/>
+              <circle cx="-23" cy="2" r="13" fill="#6a2a8e"/>
+              <circle cx="29" cy="2" r="13" fill="#6a2a8e"/>
+              <circle cx="-24" cy="1" r="7" fill="#2a1a0a"/>
+              <circle cx="28" cy="1" r="7" fill="#2a1a0a"/>
+              <circle cx="-20" cy="-2" r="3" fill="white"/>
+              <circle cx="32" cy="-2" r="3" fill="white"/>
+              <!-- Lashes -->
+              <line x1="-42" y1="-14" x2="-46" y2="-22" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="-34" y1="-17" x2="-36" y2="-25" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="-26" y1="-19" x2="-26" y2="-27" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="42" y1="-14" x2="46" y2="-22" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="34" y1="-17" x2="36" y2="-25" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="26" y1="-19" x2="26" y2="-27" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- Surprised arched brows -->
+              <path d="M-44,-22 Q-26,-36 -6,-22" fill="none" stroke="#6a2a8e" stroke-width="4" stroke-linecap="round"/>
+              <path d="M6,-22 Q26,-36 44,-22" fill="none" stroke="#6a2a8e" stroke-width="4" stroke-linecap="round"/>
+              <!-- Nose -->
+              <path d="M-4,12 Q-8,26 -4,34 Q0,38 4,34 Q8,26 4,12" fill="none" stroke="#c87840" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- MOUTH — big O shape surprise then smile -->
+              <path d="M-28,55 Q-16,50 0,52 Q16,50 28,55" fill="none" stroke="#1a1108" stroke-width="3" stroke-linecap="round"/>
+              <path d="M-28,55 Q-14,68 0,70 Q14,68 28,55" fill="none" stroke="#1a1108" stroke-width="3" stroke-linecap="round"/>
+              <!-- Rosy cheeks -->
+              <ellipse cx="-40" cy="25" rx="16" ry="10" fill="#e87878" opacity="0.55"/>
+              <ellipse cx="40" cy="25" rx="16" ry="10" fill="#e87878" opacity="0.55"/>
+            </g>
+            <!-- Stars of surprise -->
+            <text x="55" y="120" font-family="Bangers,cursive" font-size="22" fill="#FFE000" stroke="#1a1108" stroke-width="3" paint-order="stroke" transform="rotate(-20,55,120)">&#9733;</text>
+            <text x="340" y="100" font-family="Bangers,cursive" font-size="18" fill="#ff5580" stroke="#1a1108" stroke-width="2.5" paint-order="stroke" transform="rotate(15,340,100)">&#9733;</text>
+            <text x="65" y="80" font-family="Bangers,cursive" font-size="28" fill="#E8151B" stroke="#1a1108" stroke-width="3" paint-order="stroke" transform="rotate(-8,65,80)">&#9829;</text>
+          </svg>
+          <div class="speech tail-br rect" style="bottom:14px;left:10px;max-width:200px;font-size:10px;border-radius:8px;">
+            Wait — are those... PEONIES?! You drove here with two whole bushes?!
+          </div>
+        </div>
+
+        <!-- Panel 3: Final moment — door open both together -->
+        <div class="panel" style="background:#fff0d0;">
+          <div class="halftone" style="background-image:radial-gradient(circle,rgba(200,150,0,0.1) 1px,transparent 1px);background-size:5px 5px;"></div>
+          <svg width="100%" height="360" viewBox="0 0 420 360" preserveAspectRatio="xMidYMid slice">
+            <rect width="420" height="360" fill="#fff0d0"/>
+            <!-- Warm glow background -->
+            <ellipse cx="210" cy="160" rx="180" ry="160" fill="#ffe8b0" stroke="none" opacity="0.6"/>
+            <!-- Ground -->
+            <rect y="280" width="420" height="80" fill="#3a7a12" stroke="#1a1108" stroke-width="2"/>
+            <!-- House door open -->
+            <rect x="170" y="80" width="100" height="220" rx="6" fill="#fff5e0" stroke="#1a1108" stroke-width="3.5"/>
+            <!-- Open door -->
+            <path d="M170,80 Q140,80 132,90 L132,295 L170,295Z" fill="#8B5E3C" stroke="#1a1108" stroke-width="3"/>
+            <path d="M132,90 Q125,88 122,96 Q120,104 126,108 Q130,110 132,106" fill="#FFE000" stroke="#1a1108" stroke-width="2"/>
+            <!-- Warm light from inside -->
+            <path d="M170,80 Q200,100 200,180 Q200,240 170,280 L220,280 L220,80Z" fill="#ffe0a0" opacity="0.4"/>
+            <!-- BOTH CHARACTERS -->
+            <!-- HIM -->
+            <g transform="translate(130,240)">
+              <path d="M-18,0 Q-20,-28 -12,-44 Q-4,-56 0,-58 Q4,-56 12,-44 Q20,-28 18,0Z" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-7,-44 Q0,-37 7,-44 L6,-31 Q0,-24 -6,-31Z" fill="#1a4a9e" stroke="#1a1108" stroke-width="1.5"/>
+              <rect x="-12" y="0" width="10" height="15" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+              <rect x="3" y="0" width="10" height="15" rx="3" fill="#1a4a9e" stroke="#1a1108" stroke-width="2"/>
+              <!-- Arm reaching forward -->
+              <path d="M16,-18 Q30,-20 40,-12 Q48,-4 44,4 Q40,10 30,8 Q20,6 16,-4" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="46" cy="0" rx="9" ry="8" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <!-- Other arm around bush -->
+              <path d="M-18,-16 Q-32,-20 -40,-12 Q-46,-4 -40,4 Q-34,8 -24,5 Q-16,2 -14,-8" fill="#E8151B" stroke="#1a1108" stroke-width="2.5"/>
+              <!-- Head -->
+              <ellipse cx="0" cy="-72" rx="22" ry="24" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+              <path d="M-20,-78 Q-17,-96 0,-100 Q17,-96 20,-78 Q14,-88 0,-90 Q-14,-88 -20,-78Z" fill="#2a1a0a" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="-7" cy="-72" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="7" cy="-72" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-6" cy="-72" r="4" fill="#2a1a0a"/>
+              <circle cx="8" cy="-72" r="4" fill="#2a1a0a"/>
+              <circle cx="-4" cy="-73" r="1.4" fill="white"/>
+              <circle cx="10" cy="-73" r="1.4" fill="white"/>
+              <path d="M-6,-61 Q0,-55 6,-61" fill="none" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            <!-- HER -->
+            <g transform="translate(280,244)">
+              <path d="M-18,0 Q-18,-28 -10,-44 Q-4,-56 0,-58 Q4,-56 10,-44 Q18,-28 18,0Z" fill="#ff88cc" stroke="#1a1108" stroke-width="2.5"/>
+              <rect x="-12" y="0" width="10" height="15" rx="3" fill="#9b59b6" stroke="#1a1108" stroke-width="2"/>
+              <rect x="3" y="0" width="10" height="15" rx="3" fill="#9b59b6" stroke="#1a1108" stroke-width="2"/>
+              <!-- Arm reaching out -->
+              <path d="M-16,-18 Q-30,-22 -40,-14 Q-48,-6 -44,2 Q-38,8 -28,7 Q-18,5 -14,-6" fill="#ff88cc" stroke="#1a1108" stroke-width="2.5"/>
+              <ellipse cx="-46" cy="-2" rx="9" ry="8" fill="#f0c080" stroke="#1a1108" stroke-width="2"/>
+              <!-- Head -->
+              <ellipse cx="0" cy="-72" rx="22" ry="24" fill="#f0c080" stroke="#1a1108" stroke-width="2.5"/>
+              <!-- Purple hair -->
+              <path d="M-20,-78 Q-18,-98 0,-102 Q18,-98 20,-78 Q14,-90 0,-92 Q-14,-90 -20,-78Z" fill="#8B3A9E" stroke="#1a1108" stroke-width="2"/>
+              <path d="M-20,-80 Q-28,-92 -26,-102 Q-20,-110 -14,-102 Q-20,-95 -20,-82" fill="#8B3A9E" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="-7" cy="-72" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <ellipse cx="7" cy="-72" rx="6" ry="5" fill="white" stroke="#1a1108" stroke-width="2"/>
+              <circle cx="-6" cy="-72" r="4" fill="#6a2a8e"/>
+              <circle cx="8" cy="-72" r="4" fill="#6a2a8e"/>
+              <circle cx="-4" cy="-73" r="1.4" fill="white"/>
+              <circle cx="10" cy="-73" r="1.4" fill="white"/>
+              <path d="M-6,-61 Q0,-55 6,-61" fill="none" stroke="#1a1108" stroke-width="2.5" stroke-linecap="round"/>
+              <ellipse cx="-15" cy="-67" rx="5" ry="3.5" fill="#e87878" opacity="0.6"/>
+              <ellipse cx="15" cy="-67" rx="5" ry="3.5" fill="#e87878" opacity="0.6"/>
+            </g>
+            <!-- Big heart between them -->
+            <text x="210" y="205" text-anchor="middle" font-family="Bangers,cursive" font-size="48" fill="#E8151B" stroke="#1a1108" stroke-width="4" paint-order="stroke">&#9829;</text>
+            <!-- Small hearts -->
+            <text x="120" y="165" font-family="Bangers,cursive" font-size="20" fill="#ff5580" stroke="#1a1108" stroke-width="2.5" paint-order="stroke" transform="rotate(-12,120,165)">&#9829;</text>
+            <text x="320" y="148" font-family="Bangers,cursive" font-size="16" fill="#FFE000" stroke="#1a1108" stroke-width="2" paint-order="stroke" transform="rotate(8,320,148)">&#9829;</text>
+            <text x="158" y="130" font-family="Bangers,cursive" font-size="22" fill="#ff6088" stroke="#1a1108" stroke-width="2.5" paint-order="stroke" transform="rotate(-5,158,130)">&#9829;</text>
+          </svg>
+          <div class="speech tail-tl rect" style="bottom:14px;right:10px;max-width:175px;font-size:10px;">
+            It might be out of season... but coding never is. These are for you.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PAGE 4: BACK COVER                          -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="comic-page" id="page-4">
+    <div class="back-cover-page">
+      <div class="halftone" style="background-image:radial-gradient(circle,rgba(255,224,0,0.12) 1px,transparent 1px);background-size:6px 6px;position:absolute;inset:0;"></div>
+
+      <!-- Back cover top bar -->
+      <div style="position:absolute;top:0;left:0;right:0;background:var(--marvel-red);border-bottom:4px solid var(--marvel-yellow);padding:10px 24px;text-align:center;">
+        <div style="font-family:'Bangers',cursive;font-size:16px;color:var(--marvel-yellow);letter-spacing:3px;">THE PEONY PURSUIT &nbsp;&#9733;&nbsp; BACK COVER</div>
+      </div>
+
+      <!-- Main back cover art -->
+      <div style="position:relative;z-index:2;width:100%;max-width:720px;margin:50px auto 0;">
+
+        <!-- Center illustration -->
+        <svg width="100%" viewBox="0 0 720 400" style="display:block;">
+          <defs>
+            <pattern id="bc-dots" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1.4" fill="rgba(255,224,0,0.2)"/></pattern>
+          </defs>
+          <rect width="720" height="400" fill="#1a1108"/>
+          <rect width="720" height="400" fill="url(#bc-dots)"/>
+
+          <!-- Burst lines from center -->
+          <line x1="360" y1="200" x2="0" y2="0" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="180" y2="0" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="360" y2="0" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="540" y2="0" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="720" y2="0" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="720" y2="200" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="720" y2="400" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="360" y2="400" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="0" y2="400" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+          <line x1="360" y1="200" x2="0" y2="200" stroke="#E8151B" stroke-width="2" opacity="0.3"/>
+
+          <!-- Peony blooms decorative -->
+          <g transform="translate(160,200)">
+            <circle cx="0" cy="0" r="50" fill="#ff6088" stroke="#FFE000" stroke-width="3"/>
+            <circle cx="0" cy="0" r="34" fill="#ff3366" stroke="#FFE000" stroke-width="2"/>
+            <circle cx="0" cy="0" r="18" fill="#cc1144" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="-42" cy="-24" rx="26" ry="22" fill="#ff6088" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="42" cy="-24" rx="26" ry="22" fill="#ff6088" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="0" cy="-50" rx="24" ry="22" fill="#ff88aa" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="-38" cy="30" rx="22" ry="20" fill="#ff7099" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="38" cy="30" rx="22" ry="20" fill="#ff6088" stroke="#FFE000" stroke-width="2"/>
+          </g>
+          <g transform="translate(560,200)">
+            <circle cx="0" cy="0" r="50" fill="#ff6088" stroke="#FFE000" stroke-width="3"/>
+            <circle cx="0" cy="0" r="34" fill="#ff3366" stroke="#FFE000" stroke-width="2"/>
+            <circle cx="0" cy="0" r="18" fill="#cc1144" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="-42" cy="-24" rx="26" ry="22" fill="#ff6088" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="42" cy="-24" rx="26" ry="22" fill="#ff6088" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="0" cy="-50" rx="24" ry="22" fill="#ff88aa" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="-38" cy="30" rx="22" ry="20" fill="#ff7099" stroke="#FFE000" stroke-width="2"/>
+            <ellipse cx="38" cy="30" rx="22" ry="20" fill="#ff6088" stroke="#FFE000" stroke-width="2"/>
+          </g>
+
+          <!-- Center text block -->
+          <rect x="230" y="80" width="260" height="240" rx="8" fill="#1a1108" stroke="#FFE000" stroke-width="3"/>
+          <text x="360" y="128" text-anchor="middle" font-family="Bangers,cursive" font-size="16" fill="#FFE000" letter-spacing="2">IT MIGHT NOT BE</text>
+          <text x="360" y="156" text-anchor="middle" font-family="Bangers,cursive" font-size="16" fill="#FFE000" letter-spacing="2">PEONIES IN PERSON...</text>
+          <line x1="250" y1="166" x2="470" y2="166" stroke="#E8151B" stroke-width="2"/>
+          <text x="360" y="194" text-anchor="middle" font-family="Bangers,cursive" font-size="16" fill="white" letter-spacing="1">BUT I AM</text>
+          <text x="360" y="222" text-anchor="middle" font-family="Bangers,cursive" font-size="16" fill="white" letter-spacing="1">COUNTING DOWN</text>
+          <text x="360" y="250" text-anchor="middle" font-family="Bangers,cursive" font-size="16" fill="white" letter-spacing="1">THE DAYS TILL</text>
+          <line x1="250" y1="260" x2="470" y2="260" stroke="#E8151B" stroke-width="2"/>
+          <text x="360" y="288" text-anchor="middle" font-family="Bangers,cursive" font-size="22" fill="#E8151B" stroke="#FFE000" stroke-width="2" paint-order="stroke" letter-spacing="2">THEY ARE</text>
+          <text x="360" y="316" text-anchor="middle" font-family="Bangers,cursive" font-size="26" fill="#ff6088" stroke="#FFE000" stroke-width="2" paint-order="stroke" letter-spacing="2">IN SEASON!</text>
+          <text x="360" y="348" text-anchor="middle" font-family="Bangers,cursive" font-size="36" fill="#FFE000" stroke="#E8151B" stroke-width="4" paint-order="stroke">&#9829;</text>
+        </svg>
+
+        <!-- Bottom info grid -->
+        <div class="back-cover-grid" style="margin-top:24px;">
+          <div class="bc-panel">
+            <div style="font-family:'Bangers',cursive;font-size:15px;color:var(--marvel-yellow);letter-spacing:2px;margin-bottom:8px;">&#9733; NEXT ISSUE</div>
+            <div style="font-family:'Comic Neue',cursive;font-size:12px;color:white;line-height:1.6;">
+              The peonies bloom at last! Our hero returns — and this time, a whole garden awaits. Don't miss <em style="color:var(--marvel-yellow);">"The Season Has Come!"</em>
+            </div>
+          </div>
+          <div class="bc-panel">
+            <div style="font-family:'Bangers',cursive;font-size:15px;color:var(--marvel-yellow);letter-spacing:2px;margin-bottom:8px;">&#9733; MEANWHILE...</div>
+            <div style="font-family:'Comic Neue',cursive;font-size:12px;color:white;line-height:1.6;">
+              Two peony bushes now live on her porch. Every morning she sees them, she smiles. And somewhere, he is already writing code, counting down the days.
+            </div>
+          </div>
+          <div class="bc-panel">
+            <div style="font-family:'Bangers',cursive;font-size:15px;color:var(--marvel-yellow);letter-spacing:2px;margin-bottom:8px;">&#9733; FUN FACT</div>
+            <div style="font-family:'Comic Neue',cursive;font-size:12px;color:white;line-height:1.6;">
+              Peonies bloom late spring. Coders, however, ship year-round. He had the flowers. She had his heart. Neither was out of season.
+            </div>
+          </div>
+          <div class="bc-panel">
+            <div style="font-family:'Bangers',cursive;font-size:15px;color:var(--marvel-yellow);letter-spacing:2px;margin-bottom:8px;">&#9733; CREDITS</div>
+            <div style="font-family:'Comic Neue',cursive;font-size:12px;color:white;line-height:1.6;">
+              Story: A True Love Story<br>
+              Art: Drawn With Devotion<br>
+              Flowers: Flora's Blooms<br>
+              Miles driven: 482<br>
+              <span style="color:var(--marvel-yellow);">Peonies planted: 2</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barcode area -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;padding:0 4px;">
+          <div>
+            <svg width="90" height="52" viewBox="0 0 90 52">
+              <rect width="90" height="40" fill="white"/>
+              <g fill="#1a1108">
+                <rect x="4" y="2" width="2" height="36"/><rect x="7" y="2" width="1" height="36"/><rect x="10" y="2" width="3" height="36"/><rect x="15" y="2" width="1" height="36"/><rect x="18" y="2" width="2" height="36"/><rect x="22" y="2" width="3" height="36"/><rect x="27" y="2" width="1" height="36"/><rect x="30" y="2" width="2" height="36"/><rect x="34" y="2" width="3" height="36"/><rect x="39" y="2" width="1" height="36"/><rect x="42" y="2" width="2" height="36"/><rect x="46" y="2" width="1" height="36"/><rect x="49" y="2" width="3" height="36"/><rect x="54" y="2" width="2" height="36"/><rect x="58" y="2" width="1" height="36"/><rect x="61" y="2" width="2" height="36"/><rect x="65" y="2" width="3" height="36"/><rect x="70" y="2" width="1" height="36"/><rect x="73" y="2" width="2" height="36"/><rect x="77" y="2" width="1" height="36"/><rect x="80" y="2" width="3" height="36"/><rect x="85" y="2" width="1" height="36"/>
+              </g>
+              <text x="45" y="50" text-anchor="middle" font-family="Bangers,cursive" font-size="10" fill="white">02145-99982</text>
+            </svg>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Bangers',cursive;font-size:20px;color:var(--marvel-yellow);letter-spacing:2px;">25¢</div>
+            <div style="font-family:'Bangers',cursive;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;">MARVEL COMICS GROUP</div>
+            <div style="font-family:'Bangers',cursive;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;">&copy; 2024 MARVEL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end comic-viewport -->
+
+<script>
+  var pages = ['page-0','page-1','page-2','page-3','page-4'];
+  var labels = ['COVER','PAGE 1 / 3','PAGE 2 / 3','PAGE 3 / 3','BACK COVER'];
+  var nextLabels = ['OPEN ISSUE &#8594;','NEXT PAGE &#8594;','NEXT PAGE &#8594;','WHAT HAPPENS NEXT? &#8594;','THE END'];
+  var cur = 0;
+
+  function showPage(n) {
+    pages.forEach(function(id){ document.getElementById(id).classList.remove('active'); });
+    document.getElementById(pages[n]).classList.add('active');
+    document.getElementById('page-counter').textContent = labels[n];
+    document.getElementById('prev-btn').disabled = n === 0;
+    var nb = document.getElementById('next-btn');
+    nb.disabled = n === pages.length - 1;
+    nb.innerHTML = n < pages.length - 1 ? nextLabels[n] : 'THE END';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  function nextPage() { if (cur < pages.length - 1) { cur++; showPage(cur); } }
+  function prevPage() { if (cur > 0) { cur--; showPage(cur); } }
+
+  // Touch swipe support
+  var touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive: true});
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) nextPage();
+      else prevPage();
+    }
+  }, {passive: true});
+
+  showPage(0);
+</script>
+</body>
+</html>
